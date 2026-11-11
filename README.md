@@ -1,468 +1,461 @@
-Recommended Product Restocking System — Alpha 1
+# Recommended Product Restocking System
 
 <p align="center">
   <img src="https://img.shields.io/badge/Version-Alpha%201-orange?style=for-the-badge" alt="Alpha 1" />
   <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python" />
-  <img src="https://img.shields.io/badge/Machine%20Learning-F7931E?style=for-the-badge&logo=scikit-learn&logoColor=white" alt="Machine Learning" />
+  <img src="https://img.shields.io/badge/Machine%20Learning-F7931E?style=for-the-badge&logo=scikitlearn&logoColor=white" alt="Machine Learning" />
   <img src="https://img.shields.io/badge/CustomTkinter-4C4A48?style=for-the-badge&logo=python&logoColor=white" alt="CustomTkinter" />
-</p>«Alpha 1 — Proof of Concept
+</p>
 
-An exploratory retail analytics and product relationship discovery system that uses anonymous receipt-level transaction data to identify purchasing patterns, product associations, spending behaviour, and hidden relationships between products. This version establishes the analytical foundation for a future machine learning-assisted inventory forecasting and replenishment system.»
-
----
-
-1. Project Overview
-
-The Recommended Product Restocking System aims to develop an intelligent retail inventory and replenishment platform using transaction data, machine learning, and data analytics.
-
-The first development stage, Alpha 1, focuses on establishing a proof of concept using the receipt-level information available in the Dunnhumby The Complete Journey dataset.
-
-Rather than immediately attempting to predict inventory requirements, Alpha 1 investigates how products relate to one another through purchasing behaviour.
-
-The system explores questions such as:
-
-- Which products are regularly purchased together?
-- Which products have strong purchasing associations?
-- Do product combinations change according to the total spending of a receipt?
-- Can products be grouped according to similar purchasing behaviour?
-- Can dimensionality reduction reveal hidden relationships between products?
-- Are there unusual receipt compositions or unexpected purchasing patterns?
-- Can product relationships be represented and explored through interactive visualizations?
-
-The initial version deliberately limits its input data to a small collection of receipt-derived fields. It does not depend on customer identities, demographics, or personal information.
-
-The long-term objective is to extend these analytical capabilities into an inventory management system that records stock movements, predicts future demand, manages FIFO inventory, and generates intelligent product replenishment recommendations.
+> **Alpha 1 — Proof of Concept**
+>
+> An exploratory retail analytics system that uses anonymous receipt-level transaction data to discover purchasing patterns, product associations, spending behaviour, and hidden relationships between products. This proof of concept establishes the analytical foundation for a future machine learning-assisted inventory forecasting and replenishment platform.
 
 ---
 
-2. Alpha 1 — Dataset Scope
+## 📌 Table of Contents
 
-Dataset
+- [Overview](#-project-overview)
+- [Alpha 1 Scope](#-alpha-1-data-scope)
+- [Features](#-key-features)
+- [Analytical Methods](#-machine-learning--analytical-methods)
+- [Data Pipeline](#-data-pipeline)
+- [System Architecture](#-system-architecture)
+- [Desktop Interface](#-desktop-interface)
+- [Technology Stack](#️-technology-stack)
+- [Privacy and Data Constraints](#-privacy-and-data-constraints)
+- [Development Roadmap](#-development-roadmap)
+- [Installation](#-installation--usage)
+- [Project Structure](#-project-structure)
+- [Acknowledgements](#-acknowledgements)
 
-Dunnhumby — The Complete Journey
+---
 
-The dataset provides historical retail transaction records, which will be used as the foundation for developing and testing the initial analytical components.
+## 📖 Project Overview
 
-For Alpha 1, only the following four logical fields are used.
+The Recommended Product Restocking System aims to develop an intelligent retail inventory and replenishment platform using transaction analytics, machine learning, and inventory optimization.
 
-Field| Description| Source / Processing
-"BASKET_ID"| Unique receipt or basket identifier| Dunnhumby transaction data
-"PRODUCT_ID"| Identifier of the purchased product| Dunnhumby transaction data
-"ITEM_LINE_VALUE"| Monetary value associated with the purchased product line| Derived from "SALES_VALUE"
-"RECEIPT_TOTAL"| Total value of the products within a receipt| Calculated by aggregating product-line values using "BASKET_ID"
+**Alpha 1** focuses on exploring purchasing behaviour through the Dunnhumby *The Complete Journey* dataset.
 
-Data interpretation:
+Instead of immediately predicting restocking quantities, this version investigates the relationships between products and receipts to discover patterns that may not be immediately apparent.
 
-- "BASKET_ID" identifies which receipt a purchased product belongs to.
-- "PRODUCT_ID" identifies the purchased product.
-- "ITEM_LINE_VALUE" represents the monetary value associated with that product's transaction line. It should not automatically be interpreted as a per-unit price.
-- "RECEIPT_TOTAL" is calculated by summing the included product-line values belonging to the same basket.
+### 🎯 Primary Objectives
 
-The exact customer-paid receipt total may differ from this calculated value because the Dunnhumby "SALES_VALUE" field represents the amount received by the retailer and has its own discount-related semantics.
+- Discover products that are frequently purchased together.
+- Identify purchasing associations and complementary product relationships.
+- Segment receipts according to spending behaviour.
+- Identify products with similar purchasing patterns.
+- Visualize hidden product relationships using dimensionality reduction.
+- Discover unusual receipt compositions and unexpected correlations.
+- Establish the analytical foundation for future demand forecasting.
 
-The Alpha 1 implementation intentionally excludes additional transaction fields, even where they exist in the original dataset.
+**Long-term goal:** Transform these analytical capabilities into a digital inventory management and predictive replenishment system.
 
-Explicitly Excluded Data
+---
 
-The following information will not be used as model inputs in Alpha 1:
+## 📊 Alpha 1 — Data Scope
 
-- Household or customer identifiers.
-- Customer demographics.
-- Customer age, income, marital status, or household composition.
+**Dataset:** Dunnhumby — The Complete Journey
+
+Alpha 1 deliberately uses a restricted set of receipt-derived information.
+
+### Approved data fields
+
+| Field | Description | Origin |
+|---|---|---|
+| `BASKET_ID` | Unique receipt/basket identifier | Transaction data |
+| `PRODUCT_ID` | Identifier of the purchased product | Transaction data |
+| `ITEM_LINE_VALUE` | Monetary value associated with a purchased product line | `SALES_VALUE` |
+| `RECEIPT_TOTAL` | Total monetary value of a receipt | Derived using `BASKET_ID` |
+
+**Data processing rules:**
+
+- `BASKET_ID` groups products belonging to the same receipt.
+- `PRODUCT_ID` identifies individual products.
+- `ITEM_LINE_VALUE` represents the transaction-line value, not necessarily the unit price.
+- `RECEIPT_TOTAL` is calculated by aggregating the included product-line values within each basket.
+
+> **Note:** `RECEIPT_TOTAL` is a derived field, not an independent raw transaction column. The exact customer-paid receipt total may differ from a total calculated using `SALES_VALUE`, depending on the dataset's discount and transaction-value semantics.
+
+### Excluded information
+
+Alpha 1 does not use:
+
+- Customer or household identifiers.
+- Customer names or addresses.
+- Demographic or psychographic information.
 - Transaction dates and timestamps.
 - Product purchase quantities.
 - Store identifiers.
-- Coupon and discount information.
-- Promotional campaign information.
-- External customer profiles or psychographic information.
+- Coupon and promotional information.
+- External customer profiles.
 
-Important limitation: Because this version does not use purchase quantities or temporal information, it cannot reliably perform unit-level demand forecasting, time-series forecasting, seasonal analysis, or actual inventory replenishment calculations.
+This restricted scope allows the proof of concept to focus on anonymous receipt-level purchasing relationships.
 
 ---
 
-3. Alpha 1 — Core Features
+## ✨ Key Features
 
-3.1 Market Basket Analysis
+| Feature | Description |
+|---|---|
+| **Market Basket Analysis** | Discovers products frequently purchased together. |
+| **Association Rule Mining** | Measures the strength of purchasing relationships. |
+| **Receipt Spending Segmentation** | Groups receipts by their total spending. |
+| **Product Behavioural Similarity** | Identifies products with similar receipt appearances. |
+| **Dimensionality Reduction** | Visualizes high-dimensional product relationships. |
+| **Product Clustering** | Groups products with similar purchasing patterns. |
+| **Product Relationship Networks** | Represents products and their associations as a graph. |
+| **Anomaly Detection** | Investigates unusual receipt compositions and product patterns. |
 
-The system will investigate relationships between products that appear together in individual receipts.
+### 1. Market Basket Analysis
 
-It will use association rule mining to discover frequently co-purchased products.
+Discover relationships between products appearing in the same receipt.
 
-Potential algorithms:
-
+**Algorithms:**
 - Apriori
 - FP-Growth
 - Eclat
 
-Association mining will use three primary statistical measures:
+**Evaluation metrics:**
 
-Metric| Purpose
-Support| Measures how frequently a product combination occurs across receipts.
-Confidence| Measures how frequently another product appears when a particular product is present.
-Lift| Measures the strength of an association relative to the products' independent occurrence frequencies.
+| Metric | Purpose |
+|---|---|
+| Support | Frequency of a product combination. |
+| Confidence | Frequency of one product appearing with another, given the first product. |
+| Lift | Strength of association relative to independent occurrence. |
 
-Potential applications:
+**Potential applications:**
+- Frequently purchased product combinations.
+- Complementary product discovery.
+- Bundle recommendation opportunities.
+- Unexpected product associations.
 
-- Identifying frequently purchased product combinations.
-- Discovering complementary product relationships.
-- Identifying products suitable for bundle recommendations.
-- Finding unexpectedly strong product associations.
-- Comparing the relationships between individual products.
+### 2. Receipt Spending Segmentation
 
-The results represent purchasing associations, not proven causal relationships or confirmed product substitutes.
+Group receipts according to their calculated spending totals.
 
-3.2 Receipt Spending Segmentation
-
-Receipts will be grouped according to their calculated total spending.
-
-The system will investigate purchasing behaviour across different spending segments.
-
-Potential segmentation approaches:
-
+**Approaches:**
 - Median-based segmentation.
 - Quartile-based segmentation.
 - Spending quantiles.
-- K-Means clustering of receipt-level numerical features.
+- K-Means clustering.
 
-Potential analytical outputs:
-
-- Low-, medium-, and high-spending receipt groups.
-- Product occurrence within each spending segment.
-- Frequently purchased combinations by spending segment.
+**Potential insights:**
+- Products frequently appearing in low-, medium-, and high-value receipts.
+- Differences in purchasing combinations between spending segments.
+- Product contribution to receipt totals.
 - Average number of unique products per receipt.
-- Product-line contribution to receipt spending.
-- Differences in purchasing associations across spending segments.
 
-This allows the system to investigate whether certain product combinations are more common in lower-value or higher-value receipts.
+### 3. Product Behavioural Similarity
 
-3.3 Product Behavioural Similarity
+Construct a product-receipt matrix to represent the purchasing behaviour of individual products.
 
-Products will be represented according to the receipts in which they appear.
+Example:
 
-A product-receipt matrix will be constructed using the available transaction records.
+| Product | Receipt 1 | Receipt 2 | Receipt 3 | Receipt 4 |
+|---|---:|---:|---:|---:|
+| Product A | 1 | 1 | 0 | 1 |
+| Product B | 1 | 1 | 0 | 0 |
+| Product C | 0 | 0 | 1 | 1 |
+| Product D | 0 | 0 | 1 | 1 |
 
-For example:
+`1` indicates that the product appears in the receipt.
 
-Product| Receipt 1| Receipt 2| Receipt 3| Receipt 4
-Product A| 1| 1| 0| 1
-Product B| 1| 1| 0| 0
-Product C| 0| 0| 1| 1
-Product D| 0| 0| 1| 1
-
-A value of "1" indicates that a product appeared in the corresponding receipt.
-
-This representation allows the system to compare products according to their purchasing patterns.
-
-Potential applications:
-
+This representation enables:
 - Product co-occurrence analysis.
-- Behavioural product similarity.
-- Product grouping based on receipt appearances.
+- Behavioural similarity measurement.
+- Product grouping.
 - Product relationship matrix generation.
 
-These groupings describe behavioural similarity, not necessarily product-category or functional similarity.
+### 4. Dimensionality Reduction and Visualization
 
-3.4 Dimensionality Reduction and Visualization
+Explore high-dimensional purchasing data through lower-dimensional representations.
 
-The project will investigate dimensionality reduction to visualize relationships between products.
-
-Potential techniques:
-
+**Techniques:**
 - Principal Component Analysis (PCA).
-- Truncated Singular Value Decomposition (Truncated SVD).
+- Truncated Singular Value Decomposition (SVD).
 
-The product-receipt matrix will be transformed into a lower-dimensional representation.
-
-The resulting projections can be used to visualize products according to their purchasing behaviour.
-
-Potential visualizations:
-
-- Two-dimensional product similarity plots.
-- Three-dimensional product relationship plots.
-- Product clustering visualizations.
-- Behavioural group distributions.
+**Visualization opportunities:**
+- 2D and 3D product similarity plots.
+- Product cluster distributions.
+- Behavioural group visualization.
 - Spending-segment comparisons.
 
-The system may experiment with clustering algorithms on the reduced representations:
-
+**Clustering experiments:**
 - K-Means.
 - DBSCAN.
 - HDBSCAN.
 - Agglomerative Clustering.
 
-PCA and other dimensionality reduction methods are exploratory tools. Proximity in a reduced visualization does not by itself establish a strong product association.
+Dimensionality reduction helps reveal structures in the data, but visual proximity alone does not establish a strong purchasing association.
 
-3.5 Product Relationship Network
+### 5. Product Relationship Networks
 
-The system will investigate representing products as an interconnected graph.
+Represent the purchasing ecosystem as a graph.
 
-In this representation:
+| Graph Component | Representation |
+|---|---|
+| Nodes | Individual products |
+| Edges | Purchasing associations |
+| Edge weights | Association strength |
+| Communities | Groups of interconnected products |
 
-- Each node represents a product.
-- Each edge represents a purchasing association.
-- Edge weights represent the strength of the relationship.
+**Potential analysis:**
+- Highly connected products.
+- Product communities.
+- Products connecting different purchasing groups.
+- Unexpected product relationships.
 
-Potential graph analytics include:
+Potential graph algorithms include Louvain community detection and other graph clustering techniques.
 
-- Identifying highly connected products.
-- Discovering product communities.
-- Identifying products that connect different purchasing groups.
-- Exploring unexpected product associations.
-- Visualizing purchasing relationships.
+### 6. Unusual Pattern Discovery
 
-Potential algorithms include Louvain community detection and other graph clustering techniques.
+Investigate receipt compositions and product relationships that differ from normal purchasing patterns.
 
-3.6 Unusual Purchasing Pattern Discovery
-
-Alpha 1 will also explore statistical techniques for identifying unusual receipt compositions and product relationships.
-
-Potential investigations include:
-
+**Potential discoveries:**
+- Unusual product combinations.
+- Rare but strongly associated products.
 - Receipts with unusually high calculated totals.
-- Unusual combinations of products.
-- Rare product combinations with unexpectedly strong associations.
 - Products with unusual co-occurrence profiles.
-- Differences in purchasing patterns across spending segments.
+- Differences in purchasing behaviour across spending segments.
 
-Potential techniques:
-
+**Techniques:**
 - Isolation Forest.
 - Statistical anomaly detection.
 - DBSCAN.
 - Association rule analysis.
 
-These capabilities will initially be exploratory and will depend on dataset size, quality, and the validation of detected patterns.
+---
+
+## 🧠 Machine Learning & Analytical Methods
+
+The Alpha 1 proof of concept combines several analytical approaches rather than relying on a single predictive model.
+
+| Approach | Algorithms / Techniques | Purpose |
+|---|---|---|
+| Association Mining | Apriori, FP-Growth, Eclat | Product relationships |
+| Spending Segmentation | K-Means, quantiles | Receipt grouping |
+| Dimensionality Reduction | PCA, Truncated SVD | Product visualization |
+| Product Clustering | K-Means, DBSCAN, HDBSCAN | Behavioural grouping |
+| Graph Analysis | NetworkX, Louvain | Product communities |
+| Anomaly Detection | Isolation Forest, statistical methods | Unusual purchasing patterns |
+
+**Important:** Alpha 1 focuses on unsupervised learning, association mining, and exploratory analysis. A supervised demand forecasting model is planned for a later development stage when suitable temporal and quantity-level data can be collected.
 
 ---
 
-4. Proposed Analytical Pipeline
+## ⚙️ Data Pipeline
 
-The Alpha 1 pipeline is designed around receipt-level information.
+The pipeline transforms restricted transaction records into analytical outputs.
 
+```mermaid
 graph TD
-    A["Dunnhumby Transaction Data"] --> B["Select Four Approved Fields"]
+    A["Dunnhumby Transaction Data"] --> B["Select Approved Fields"]
     B --> C["Data Cleaning and Validation"]
     C --> D["Receipt-Level Aggregation"]
-    D --> E["Receipt Spending Analysis"]
+    D --> E["Spending Segmentation"]
     D --> F["Product-Receipt Matrix"]
-    E --> G["Spending Segmentation"]
+    E --> G["Spending Behaviour Analysis"]
     F --> H["Market Basket Analysis"]
     F --> I["Product Similarity Analysis"]
     I --> J["PCA / Truncated SVD"]
     I --> K["Product Relationship Graph"]
-    G --> H
     H --> L["Analytical Results"]
+    G --> L
     J --> L
     K --> L
-    L --> M["Visualizations and Desktop Dashboard"]
+    L --> M["Desktop Dashboard and Visualizations"]
+```
 
-The processing stages are:
+### Processing stages
 
-1. Dataset Selection: Load the Dunnhumby transaction records.
-2. Field Restriction: Retain only the four approved logical fields.
-3. Data Cleaning: Handle missing product identifiers, invalid monetary values, and duplicate transaction lines.
-4. Receipt Aggregation: Group products using "BASKET_ID" and calculate receipt-level totals.
-5. Feature Construction: Generate product-presence matrices, receipt spending features, and product relationship measures.
-6. Analytical Processing: Apply association mining, clustering, dimensionality reduction, and anomaly detection.
-7. Visualization: Present the discovered patterns through charts, product relationship graphs, and interactive analytical views.
+1. **Dataset Integration:** Load the Dunnhumby transaction records.
+2. **Field Restriction:** Retain only the approved receipt-derived fields.
+3. **Data Cleaning:** Handle missing identifiers, invalid monetary values, and duplicate records.
+4. **Receipt Aggregation:** Calculate receipt totals using `BASKET_ID`.
+5. **Feature Construction:** Generate product-presence matrices and receipt-level features.
+6. **Analytical Processing:** Apply association mining, clustering, dimensionality reduction, and anomaly detection.
+7. **Visualization:** Present the results through interactive charts and product relationship views.
 
 ---
 
-5. Desktop Interface
+## 🖥️ Desktop Interface
 
-The application will use Python and CustomTkinter to provide a desktop interface for interacting with the analytical system.
+**Framework:** Python CustomTkinter
 
-The proposed interface will focus on:
+The desktop application is designed around the needs of retail inventory managers and data analysts.
 
-- Receipt-level spending analysis.
-- Product association exploration.
-- Product relationship visualizations.
-- Spending-segment comparisons.
-- PCA and dimensionality reduction plots.
+### Proposed interface components
+
+- Receipt spending analysis dashboard.
+- Product association explorer.
+- Product relationship network.
+- Product similarity visualization.
+- PCA / SVD scatter plots.
 - Product clustering results.
 - Unusual purchasing pattern reports.
 
-The objective is to make analytical discoveries understandable and useful rather than simply presenting raw machine learning outputs.
+The goal is to make analytical discoveries accessible through a practical desktop interface.
 
 ---
 
-6. Technology Stack
+## 🛠️ Technology Stack
 
-The following technologies are proposed for the Alpha 1 proof of concept.
-
-Category| Technology
-Programming Language| Python
-Desktop Interface| CustomTkinter
-Data Processing| Pandas, NumPy
-Machine Learning| Scikit-learn
-Association Rule Mining| MLxtend
-Dimensionality Reduction| Scikit-learn
-Clustering| Scikit-learn
-Graph Analysis| NetworkX
-Data Visualization| Matplotlib / Plotly
-Dataset| Dunnhumby The Complete Journey
-
-The selection of individual algorithms and libraries may evolve as the proof of concept is evaluated.
+| Category | Technology |
+|---|---|
+| Programming Language | Python |
+| Desktop GUI | CustomTkinter |
+| Data Processing | Pandas, NumPy |
+| Machine Learning | Scikit-learn |
+| Association Rule Mining | MLxtend |
+| Dimensionality Reduction | Scikit-learn |
+| Clustering | Scikit-learn |
+| Graph Analysis | NetworkX |
+| Visualization | Matplotlib / Plotly |
+| Dataset | Dunnhumby The Complete Journey |
 
 ---
 
-7. Privacy Considerations
+## 🔐 Privacy and Data Constraints
 
 Alpha 1 follows a receipt-level, privacy-conscious analytical approach.
 
-The system does not require customer names, addresses, demographics, or individual customer profiles.
+- No customer names or personal profiles are required.
+- No demographic attributes are used.
+- Purchasing patterns are analyzed using receipt and product identifiers.
+- Analysis focuses on aggregate purchasing behaviour.
 
-All behavioural analysis is performed using receipt identifiers and product-level transaction information.
+### Known limitations
 
-The system focuses on aggregate purchasing patterns rather than identifying individual customers.
+| Missing Information | Limitation |
+|---|---|
+| Purchase quantities | Cannot reliably predict units sold. |
+| Timestamps | Cannot perform temporal or seasonal demand forecasting. |
+| Inventory history | Cannot detect actual stockout events. |
+| Batch information | Cannot implement batch-level FIFO. |
+| Expiry dates | Cannot calculate expiry risk. |
+| Supplier lead times | Cannot calculate lead-time-aware replenishment. |
+| Verified product taxonomy | Cannot reliably identify equivalent products or substitutes. |
+| Promotion information | Cannot isolate promotional effects. |
 
-No customer-level profiling or demographic-based segmentation is part of the Alpha 1 scope.
-
----
-
-8. Known Limitations of Alpha 1
-
-Alpha 1 is an analytical proof of concept, not a complete inventory replenishment system.
-
-The restricted dataset imposes the following limitations:
-
-Limitation| Consequence
-No quantity information| Cannot reliably forecast units sold.
-No transaction timestamps| Cannot perform temporal or seasonal demand forecasting.
-No historical inventory records| Cannot identify actual stockout events.
-No batch information| Cannot implement batch-level FIFO tracking.
-No expiry dates| Cannot calculate product expiry risk.
-No supplier information| Cannot calculate supplier lead-time requirements.
-No verified product taxonomy| Cannot reliably identify functional product categories or substitutes.
-No promotion or discount information| Cannot isolate promotional effects on purchasing behaviour.
-
-In particular, product co-occurrence must not be interpreted as product substitutability. Identifying substitutes requires additional product classification, availability, and temporal purchasing evidence.
+> **Scope clarification:** Alpha 1 is a retail analytics proof of concept, not a complete inventory management or automated restocking application.
 
 ---
 
-9. Future Development Roadmap
+## 🔮 Development Roadmap
 
-Alpha 1 establishes the foundation for expanding the proof of concept into a complete inventory intelligence platform.
+The project will progressively evolve from receipt analytics into an intelligent inventory optimization platform.
 
-Future versions will introduce additional data collection through the software itself.
+### Alpha 1 — Receipt Analytics and Pattern Discovery
 
-Alpha 2 — Product Intelligence and Data Infrastructure
+- [x] Restricted receipt-level data approach.
+- [ ] Market Basket Analysis.
+- [ ] Receipt spending segmentation.
+- [ ] Product behavioural similarity.
+- [ ] PCA / Truncated SVD visualization.
+- [ ] Product clustering.
+- [ ] Product relationship network.
+- [ ] Unusual pattern discovery.
 
-Potential additions:
+### Alpha 2 — Product Intelligence and Data Infrastructure
 
-- Centralized product catalogue.
-- Product name normalization.
-- Brand and product-type classification.
-- Human-assisted product taxonomy.
-- Semantic product similarity.
-- Product substitution analysis.
-- Database-backed transaction storage.
-- Receipt timestamp recording.
+- [ ] Centralized product catalogue.
+- [ ] Product name normalization.
+- [ ] Brand and product-type classification.
+- [ ] Human-assisted product taxonomy.
+- [ ] Semantic product similarity.
+- [ ] Product substitution analysis.
+- [ ] Database-backed transaction storage.
+- [ ] Timestamp recording.
 
-Beta — Digital Inventory Management
+### Beta — Digital Inventory Management
 
-Potential additions:
+- [ ] Digital inventory ledger.
+- [ ] Stock purchase and sales recording.
+- [ ] Quantity-level inventory tracking.
+- [ ] Batch-level stock management.
+- [ ] FIFO inventory management.
+- [ ] Expiry and damage tracking.
+- [ ] Supplier information and lead-time records.
+- [ ] Historical inventory movement analysis.
 
-- Digital inventory ledger.
-- Stock purchase and sales tracking.
-- Quantity-level inventory records.
-- Batch-level stock tracking.
-- FIFO inventory management.
-- Expiry and damage tracking.
-- Supplier and lead-time records.
-- Historical inventory movement analysis.
+### Future ML Development — Predictive Intelligence
 
-Future ML Development — Predictive Intelligence
+- [ ] Global demand forecasting.
+- [ ] Nonlinear demand modelling.
+- [ ] Intermittent demand forecasting.
+- [ ] LightGBM and XGBoost experimentation.
+- [ ] Demand uncertainty estimation.
+- [ ] Stockout risk prediction.
+- [ ] Expiry risk prediction.
+- [ ] Cross-product demand analysis.
+- [ ] Model evaluation and retraining.
 
-Potential additions:
+### Future Optimization — Intelligent Replenishment
 
-- Global product demand forecasting.
-- Nonlinear demand modelling.
-- Intermittent demand forecasting.
-- LightGBM and XGBoost experimentation.
-- Demand uncertainty estimation.
-- Stockout risk prediction.
-- Expiry risk prediction.
-- Cross-product demand relationships.
-- Model evaluation and retraining.
+- [ ] Safety stock calculation.
+- [ ] Reorder point calculation.
+- [ ] Inventory position estimation.
+- [ ] Recommended purchase quantities.
+- [ ] Lead-time-aware replenishment.
+- [ ] Expiry-aware purchasing recommendations.
+- [ ] Inventory cost and wastage analysis.
+- [ ] What-if inventory simulations.
 
-Future Optimization Development — Intelligent Replenishment
-
-Potential additions:
-
-- Safety stock calculation.
-- Reorder point calculation.
-- Inventory position estimation.
-- Recommended purchase quantities.
-- Lead-time-aware replenishment.
-- Expiry-aware purchasing recommendations.
-- Inventory cost and wastage analysis.
-- What-if inventory simulations.
-
-These are proposed development directions, not capabilities claimed to be implemented in Alpha 1.
-
----
-
-10. Long-Term Project Objective
-
-The long-term objective is to develop an intelligent retail inventory management platform that combines:
-
-1. Receipt-level purchasing analytics.
-2. Product relationship discovery.
-3. Product classification and normalization.
-4. Historical demand analysis.
-5. Machine learning-based demand forecasting.
-6. FIFO inventory management.
-7. Inventory optimization.
-8. Automated replenishment recommendations.
-
-The system will progressively learn from the data generated through its own inventory management operations.
-
-Rather than relying exclusively on a predefined product classification or a fixed forecasting algorithm, the architecture will allow different analytical and machine learning approaches to be tested and evaluated.
-
-The ultimate goal is to minimize unnecessary inventory accumulation, reduce product wastage, prevent stockouts, and improve replenishment decisions through data-driven analysis.
+*Roadmap items represent planned capabilities and are not claims of completed implementation.*
 
 ---
 
-11. Installation and Usage
+## 🚀 Installation & Usage
 
-Prerequisites
+### Prerequisites
 
 - Python 3.x
 - Git
 - Required Python dependencies
 
-Setup
+### 1. Clone the repository
 
-1. Clone the repository:
-
+```bash
 git clone <repository-url>
 cd recomended_product_restocking_system
+```
 
-2. Create a virtual environment:
+### 2. Create a virtual environment
 
+```bash
 python -m venv venv
+```
 
-3. Activate the environment:
+### 3. Activate the environment
 
+```bash
 # Linux / macOS
 source venv/bin/activate
 
 # Windows
 venv\Scripts\activate
+```
 
-4. Install dependencies:
+### 4. Install dependencies
 
+```bash
 pip install -r requirements.txt
+```
 
-5. Run the application using the project's configured entry point.
+### 5. Run the application
+
+```bash
+python main.py
+```
 
 ---
 
-12. Project Structure
+## 📁 Project Structure
 
-Proposed organizational structure:
+Proposed project organization:
 
+```text
 recomended_product_restocking_system/
 │
 ├── data/
@@ -478,25 +471,50 @@ recomended_product_restocking_system/
 │   └── anomaly_detection/    # Unusual pattern discovery
 │
 ├── models/                   # Experimental model artifacts
-│
 ├── ui/                       # CustomTkinter components
-│
-├── visualizations/            # Analytical plotting components
+├── visualizations/           # Analytical plotting components
 │
 ├── requirements.txt
 ├── main.py
 └── README.md
+```
 
 ---
 
-13. Acknowledgements
+## 🤝 Contributing
 
-Dunnhumby — For providing The Complete Journey, the foundational retail transaction dataset used in developing and evaluating the Alpha 1 proof of concept.
+Contributions, suggestions, and improvements are welcome.
+
+1. Fork the repository.
+2. Create a feature branch.
+3. Commit your changes.
+4. Push your branch.
+5. Open a Pull Request.
+
+```bash
+git checkout -b feature/your-feature
+git commit -m "Add your changes"
+git push origin feature/your-feature
+```
+
+---
+
+## 📜 License
+
+Distributed under the `<License-Type>` License. See `<license-file>` for details.
+
+---
+
+## 🙏 Acknowledgements
+
+**Dunnhumby** — For providing *The Complete Journey*, the foundational retail transaction dataset used for developing and evaluating this proof of concept.
 
 Dataset source: https://www.dunnhumby.com/source-files/
 
 ---
 
-Project Status: Alpha 1 — Proof of Concept
-
-The current development stage focuses on discovering purchasing relationships and extracting meaningful retail insights from restricted receipt-level transaction data. Predictive inventory management and automated replenishment remain part of the project's future development roadmap.
+<p align="center">
+  <b>Project Status: Alpha 1 — Proof of Concept</b>
+  <br/>
+  <sub>Exploring retail purchasing behaviour and discovering hidden product relationships through data science.</sub>
+</p>
